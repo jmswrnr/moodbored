@@ -248,7 +248,7 @@ function InitialLoad() {
   if (rootDirectory == null || rootDirectory == '') {
     ToggleSection(howToDialog, false)
   } else {
-    rootDirectory = rootDirectory.replace(/\\/g, '/');
+    rootDirectory = rootDirectory;
 
     GetNewDirectoryStructure(rootDirectory);
     CreateFolderView();
@@ -488,6 +488,8 @@ function CreateFolderView() {
 }
 
 function LoadDirectoryContents(path, newRoot) {
+  path = path.replace(/\\/g, '/');;
+
   if (newRoot) {
     rootDirectory = path;
     localStorage.setItem('rootDirectory', rootDirectory);

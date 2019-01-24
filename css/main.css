@@ -13,12 +13,13 @@
 body {
   overflow-x:hidden;
   color: #ECEFF1;
+  background: #000;
 }
 
 main {
   max-width: 100vw;
   min-height: 100vh;
-  background: #fbfbfb;
+  background: #000;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -131,6 +132,10 @@ main.sidebar-right .dropzone {
   background-color: #5E35B1;
 }
 
+.lightbox {
+  background: #000 !important;
+}
+
 .options div {
   padding: 0.25rem 0;
 }
@@ -165,7 +170,7 @@ main.sidebar-right .dropzone {
 .columns-9 { width: 11.111111%; }
 
 .pop-up {
-  background: #fff;
+  background: #455A64;
   border-radius: 6px;
   position: fixed;
   left: 50%;
@@ -173,7 +178,7 @@ main.sidebar-right .dropzone {
   transform: translate(-50%, -50%);
   max-width: 98vw;
   max-height: 98vh;
-  box-shadow: 0 0 16px #c1c2c3;
+  box-shadow: 0 0 16px #000;
 }
 
 kbd {
@@ -248,6 +253,11 @@ label {
   position: fixed;
   bottom: 16px;
   z-index: 900;
+  border: 2px solid #fff;
+  opacity: 0.87;
+}
+#hide-side-panel-ctrl:hover {
+  opacity: 1;
 }
 main.sidebar-left #hide-side-panel-ctrl {
   left: 16px;

@@ -2,7 +2,7 @@
 const defaults = {
   columns: 3,
   gutter: 6,
-  background: '#f1f2f3',
+  background: '#000000',
   userStyles: '',
   sidebar: true,
   sidebarSide: 'left',

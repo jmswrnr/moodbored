@@ -11,7 +11,8 @@
 }
 
 body {
-  color: #222;
+  overflow-x:hidden;
+  color: #ECEFF1;
 }
 
 main {
@@ -22,6 +23,7 @@ main {
   flex-direction: row;
   flex-wrap: nowrap;
   opacity: 0;
+  width: 100%;
 }
 main.sidebar-left { flex-direction: row; }
 main.sidebar-right { flex-direction: row-reverse; }
@@ -44,17 +46,17 @@ li {
 }
 
 .sidebar-container {
-  background: #fff;
+  background: #263238;
   position: relative;
   width: 300px;
   flex-shrink: 0;
-  box-shadow: 0 0 8px #c1c2c3;
 }
 .sidebar {
   /*background: #fff;*/
-  height: 100%;
-  position: fixed;
-  overflow-y: scroll;
+  /*height: 100%;*/
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-bottom: 5rem;
 }
 .view {
@@ -84,11 +86,19 @@ li {
   transition: opacity 0.1s;
 }
 
+main.sidebar-right .dropzone {
+  right: inherit;
+  left: 0;
+}
+
 .view.expand .dropzone {
   width: 100vw;
 }
 
 .folders {
+  padding-bottom: .75em;
+  margin-bottom: 1em;
+  border-bottom: 2px solid #37474F;
 }
 
 .folders button {
@@ -100,23 +110,29 @@ li {
   margin: 0;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 268px;
   white-space: nowrap;
   text-align: left;
+  line-height: 28px;
+  cursor: pointer;
+  padding: 0 0.5rem;
+  margin-bottom: 0.25rem;
+  background: #37474F;
+  color: #ECEFF1;
 }
 
 .folders button:hover,
 .folders button:focus {
-  color: #f55;
+  color: #fff;
   outline: none;
-  background-color: transparent;
+  background-color: #455A64;
 }
 .folders button.active {
-  color: #6528DD;
+  color: #fff;
+  background-color: #5E35B1;
 }
 
 .options div {
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
 }
 
 .images {
@@ -182,20 +198,26 @@ input[type=text].inline {
   padding: 0;
 }
 
+label, input[type=button], button {
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
 input[type=button], button {
   border: none;
   padding: 0.5rem;
   border-radius: 6px;
-  background: #f1f2f3;
+  background: #37474F;
+  color: #ECEFF1;
   margin: 1rem 0;
+  cursor: pointer;
 }
-
 
 input[type=button]:hover,
 input[type=button]:focus,
 button:hover,
 button:focus {
-  background: #f55;
+  background-color: #455A64;
   color: #fff;
   outline: none;
 }
@@ -217,8 +239,9 @@ button {
 }
 
 label {
-  /*display: block;*/
-  margin-bottom: 0.75rem;
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 0.25rem;
 }
 
 #hide-side-panel-ctrl {

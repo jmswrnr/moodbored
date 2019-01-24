@@ -78,17 +78,17 @@ var dropzone = function () {
     e.stopPropagation();
   }
 
-  function drop (e, altPath) {
-    let localFile = (e.dataTransfer.files.length > 0);
-    let files = (localFile) ? e.dataTransfer.files : [e.dataTransfer.getData('text/html')];
-    // if localFile is true, it's a file, false it's data
+  function drop (e, altPath, forceLocal) {
+    let isDataTransfer = (e.dataTransfer.files.length > 0);
+    let files = isDataTransfer ? e.dataTransfer.files : [e.dataTransfer.getData('text/html')];
+    // if isDataTransfer is true, it's a file, false it's data
     for (let file of files) {
-      upload(file, altPath, localFile);
+      upload(file, altPath, isDataTransfer);
     }
   }
 
-  function upload(data, altPath, localFile) {
-    let isFolder = !data.type && localFile
+  function upload(data, altPath, isDataTransfer) {
+    let isFolder = !data.type && isDataTransfer
     if (isFolder) {
       console.log('is a folder!')
       console.log(data.path)
@@ -107,24 +107,31 @@ var dropzone = function () {
     let _currentPath = altPath || currentPath;
     let path = _currentPath + '/';
     let name = '';
-    let domain = '';
 
-    if (!localFile) {
-      let imgSrc = /http[^"\n\r]*(?=")/i;
+    if (!isDataTransfer) {
+      let imgSrc = /[^"\n\r]*(?=")/i;
       _data = _data.substring(_data.indexOf('src="') + 5).match(imgSrc)[0];
-      domain = _data.substring(0, _data.indexOf('/') + 1)
-      // console.log('domain: ' + domain)
     }
 
-    let isImage = (localFile) ? _data.type.match(imgFileTypes) : _data.match(imgFileTypes);
+    let isImage = (isDataTransfer ? _data.type : _data).match(imgFileTypes);
 
     if (!isImage) {
       notification({ success: false, name: name, reason: 'not an image' });
       return;
     }
+    
+    if(!isDataTransfer && _data.startsWith('file:///')) {
+      // Allow dragging of local files from a webpage
+      isDataTransfer = true;
+      let p = _data.replace('file:///', '')
+      _data = {
+        path: p,
+        name: p.substring(p.lastIndexOf('/') + 1)
+      }
+    }
 
     let date = new Date().toISOString().replace(/:/gi, '.');
-    name = (localFile) ? _data.name : date + isImage[0];
+    name = (isDataTransfer) ? _data.name : date + isImage[0];
     path += name;
 
     if (fs.existsSync(path)) {
@@ -132,12 +139,24 @@ var dropzone = function () {
       return;
     }
 
-    let r = (localFile) ? fs.createReadStream(_data.path) : request(_data);
-    if (localFile) {
-      r.on('open', () => {
-        writeImage();
-      })
+    let r;
+
+    if(isDataTransfer) {
+      let inWorkingDir = _data.path.startsWith(rootDirectory);
+      if(options.moveFile || inWorkingDir) {
+        fs.renameSync(_data.path, path);
+
+        if(inWorkingDir && (_data.path.startsWith(currentPath) || path.startsWith(currentPath))) {
+          ReloadDirectoryContents();
+        }
+        notification({ success: true, name: name });
+        return;
+      }
+
+      r = fs.createReadStream(_data.path);
+      r.on('open', () => writeImage());
     } else {
+      r = request(_data);
       writeImage();
     }
 
@@ -147,10 +166,6 @@ var dropzone = function () {
         console.log('image done loading, creating image');
         CreateImage(currentPath, name, true);
       });
-    }
-
-    if (localFile && options.moveFile) {
-      fs.unlinkSync(_data.path);
     }
 
     notification({ success: true, name: name });
@@ -233,6 +248,8 @@ function InitialLoad() {
   if (rootDirectory == null || rootDirectory == '') {
     ToggleSection(howToDialog, false)
   } else {
+    rootDirectory = rootDirectory.replace(/\\/g, '/');
+
     GetNewDirectoryStructure(rootDirectory);
     CreateFolderView();
 
@@ -428,9 +445,15 @@ function CreateFolderView() {
 
   function CreateFolderElement(totalPath) {
     let folderButton = document.createElement('button');
-    let trimmedFolderButtonTextContent = totalPath.replace(rootDirectory + "/", "");
-    console.log('creating', trimmedFolderButtonTextContent)
+    let trimmedFolderButtonTextContent  = totalPath.replace(rootDirectory + "/", "");
     let folderHierarchy = trimmedFolderButtonTextContent.split('/');
+
+    if(folderHierarchy.length > 0 && totalPath === rootDirectory) {
+      trimmedFolderButtonTextContent = folderHierarchy.pop();
+      folderHierarchy = [trimmedFolderButtonTextContent];
+    }
+
+    console.log('creating', totalPath, trimmedFolderButtonTextContent)
     console.log('folderHierarchy', folderHierarchy)
     for (var i = 0; i < folderHierarchy.length; i++) {
       // if (folderHierarchy[i].length > 16) {
@@ -440,7 +463,7 @@ function CreateFolderView() {
     }
     let folderButtonTextContent = folderHierarchy.join(' / ');
 
-    folderButton.setAttribute('title', trimmedFolderButtonTextContent)
+    folderButton.setAttribute('title', totalPath)
     folderButton.innerText = folderButtonTextContent;
 
     folderButton.addEventListener('click', () => {
@@ -487,6 +510,12 @@ function LoadDirectoryContents(path, newRoot) {
   }
 }
 
+function ReloadDirectoryContents() {
+  ClearChildren(imageView);
+  imageElements = [];
+  LoadImages(currentPath);
+}
+
 function LoadImages(currentPath) {
   imageSrcs = [];
   fs.readdir(currentPath, (err, dir) => {
@@ -517,7 +546,7 @@ function LoadImages(currentPath) {
 
 function CreateImage(path, file, dropped) {
   let img = new Image();
-  let src = path + '/' + file;
+  let src = 'file:///' + path + '/' + file;
   img.src = src;
   img.dataset.index = imageElements.length;
   ResizeImages();
